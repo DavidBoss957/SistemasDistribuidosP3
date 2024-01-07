@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="icon" href="data:;base64,iVBORw0KGgo=">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Twitter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            width: 100%;
+            background-color: #00acee;
+            color: white;
+            padding: 10px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        #profile-icon {
+            font-size: 35px;
+            margin-right: 30px;
+        }
+
+        #logout-button {
+            border: none;
+            background-color: transparent;
+            color: white;
+            cursor: pointer;
+            margin-right: 35px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        main {
+            width: 50%;
+            max-width: 600px;
+        }
+
+        .tweet-box {
+            margin: 20px auto;
+            padding: 10px;
+            border: 1px solid #ddd;
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .tweet-box button {
+            background-color: #00acee;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin: 50px auto; /* Center the button */
+            text-align: center;
+            
+        }
+
+        #tweets-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tweet {
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            margin-top: 10px;
+        }
+
+
+        .username {
+            align-self: flex-start;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .tweet-username {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .tweet-message {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .tweet-box textarea {
+            resize: none; 
+            padding: 10px;
+            border: 1px solid #ddd;
+            width: 95%;
+            max-width: 600px;
+            text-align: center;
+            
+        }
+
+    </style>
+</head>
+<script>
+
+document.addEventListener('DOMContentLoaded', function () {
+            loadTweets();
+        });
+
+        function loadTweets() {
+            fetch('https://gbwrep4rwbbanbbz3wdjgrw3vq0ernbq.lambda-url.us-east-1.on.aws/')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok: ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(tweets => {
+                const tweetsContainer = document.getElementById('tweets-container');
+                tweetsContainer.innerHTML = '';
+                tweets.forEach(tweet => {
+                    const tweetElement = document.createElement('div');
+                    tweetElement.className = 'tweet';
+
+                    const usernameElement = document.createElement('div');
+                    usernameElement.className = 'username';
+                    usernameElement.textContent = tweet.nombre_usuario;
+
+                    const messageElement = document.createElement('div');
+                    messageElement.textContent = tweet.mensaje;
+
+                    tweetElement.appendChild(usernameElement);
+                    tweetElement.appendChild(messageElement);
+
+                    tweetsContainer.appendChild(tweetElement);
+                });
+            })
+            .catch(error => {
+                console.error('There has been a problem with your fetch operation:', error);
+            });
+        }
+
+    function handleEnviar() {
+        var text = document.getElementById("frase-tweet").value;
+        var idUsuario = localStorage.getItem('userId'); 
+
+        if (!idUsuario) {
+            alert("Usuario no identificado. Por favor, inicie sesión nuevamente.");
+            return;
+        }
+
+        // Envío de datos a la función Lambda
+        fetch("https://ckwcw3zzkeomfbk5l5l6f3s43i0mrwee.lambda-url.us-east-1.on.aws/", {
+            method: "POST",
+            body: JSON.stringify({
+                idUsuario: idUsuario,
+                mensaje: text,  
+                datoAdjunto: null,
+                tipoDato: null
+            })
+        })
+            .then(response => response.ok ? response.json() : undefined)
+            .then(data => {
+                if (data === undefined) {
+                    alert("Mensaje no mandado");
+                    console.log(text);
+                    console.log(idUsuario);
+                } else {
+                    console.log(data);
+                    window.location.href = 'https://google.com';
+                }
+            });
+    }
+    function logout() {
+        localStorage.clear();
+        window.location.href = 'http://127.0.0.1:5500/Login.html';
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const usernameDisplay = document.getElementById('username-display');
+        const storedUsername = localStorage.getItem('username');
+
+        if (storedUsername) {
+            usernameDisplay.textContent = storedUsername;
+        } else {
+            window.location.href = 'http://127.0.0.1:5500/Login.html';
+        }
+
+
+
+        const tweetBox = document.querySelector('.tweet-box textarea');
+        const tweetsContainer = document.getElementById('tweets-container');
+
+        document.querySelector('.tweet-box button').addEventListener('click', function () {
+            if (tweetBox.value.trim() !== '') {
+                const tweet = document.createElement('div');
+                tweet.classList.add('tweet');
+                tweet.textContent = tweetBox.value;
+                tweetsContainer.prepend(tweet);
+                tweetBox.value = '';
+            }
+        });
+        
+    });
+    function goToUserProfile() {
+    window.location.href = 'http://127.0.0.1:5500/Pagina_personal.html'; 
+}
+</script>
+
+<body>
+    <header>
+        <div class="user-info">
+            <div id="profile-icon" onclick="goToUserProfile()">👤</div>
+            <span class="username" id="username-display"></span>
+        </div>
+        <button id="logout-button" onclick="logout()">Log out</button>
+    </header>
+    <main>
+        <div class="tweet-box">
+            <textarea id="frase-tweet" placeholder="¿Qué está pasando?" maxlength="255"></textarea>
+        </div>
+        <button onclick="handleEnviar(); setTimeout(() => window.location.reload(), 1000);">Tweet</button>
+        <div id="tweets-container">
+
+        </div>
+    </main>
+</body>
+
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Perfil de Usuario</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f4f4f4;
+        }
+        header, main, footer {
+            max-width: 800px;
+            width: 100%;
+        }
+        header {
+            background-color: #00acee;
+            padding: 1rem;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        main {
+            margin: 20px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        .perfil-info {
+            flex-basis: 30%;
+            padding: 1rem;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            margin-right: 20px;
+        }
+        .tweets-container {
+            flex-basis: 68%;
+            padding: 1rem;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+        }
+        .tweet {
+            border-bottom: 1px solid #ddd;
+            padding: 10px 0;
+        }
+        footer {
+            text-align: center;
+            padding: 1rem;
+            background-color: #333;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Perfil de Usuario</h1>
+        <button onclick="logout()">Cerrar sesión</button>
+    </header>
+    <main>
+        <div class="perfil-info">
+            <h2 id="nombre-usuario">Nombre de Usuario</h2>
+            <p><strong>Email:</strong> <span id="email-usuario">email@ejemplo.com</span></p>
+            <p><strong>Biografía:</strong> <span id="bio-usuario">Una breve bio aquí</span></p>
+            <button id="editar-perfil">Editar Perfil</button>
+        </div>
+        <div class="tweets-container" id="tweets-usuario">
+            <!-- Los tweets se cargarán aquí -->
+        </div>
+    </main>
+    <footer>
+        <p>&copy; 2024 Mini Twitter</p>
+    </footer>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+    cargarPerfilUsuario();
+    cargarTweetsUsuario();
+});
+
+function cargarPerfilUsuario() {
+    // Suponiendo que la información del usuario se almacena en localStorage
+    const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+    if (userInfo) {
+        document.getElementById('nombre-usuario').textContent = userInfo.nombre_usuario;
+        document.getElementById('email-usuario').textContent = userInfo.correo_electronico;
+        document.getElementById('bio-usuario').textContent = userInfo.biografia;
+    }
+}
+
+function cargarTweetsUsuario() {
+    // Suponiendo que el ID del usuario también se almacena en localStorage
+    const userId = localStorage.getItem('userId');
+    
+    fetch('https://tu-endpoint.lambda-url.us-east-1.on.aws/get_user_tweets', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ idUsuario: userId })
+    })
+    .then(response => response.json())
+    .then(tweets => {
+        const tweetsContainer = document.getElementById('tweets-usuario');
+        tweetsContainer.innerHTML = ''; // Limpiar tweets anteriores
+        tweets.forEach(tweet => {
+            const tweetDiv = document.createElement('div');
+            tweetDiv.className = 'tweet';
+            tweetDiv.textContent = tweet.mensaje; // Asumiendo que 'mensaje' es parte de la respuesta
+            tweetsContainer.appendChild(tweetDiv);
+        });
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function logout() {
+    localStorage.clear();
+    window.location.href = 'login.html';
+}
+
+    </script>
+</body>
+</html>

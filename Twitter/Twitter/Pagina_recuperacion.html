@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <title>Recuperación de Contraseña</title>
+        <style>
+            body {
+                font-family: 'Arial', sans-serif;
+                background-color: #f4f4f4;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+            }
+            .recovery-container {
+                background: white;
+                padding: 50px;
+                border-radius: 10px;
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                width: 300px;
+            }
+            input, button {
+                width: 100%;
+                padding: 10px;
+                margin-bottom: 10px;
+                border-radius: 5px;
+            }
+            button {
+                background-color: #0056b3;
+                color: white;
+                border: none;
+                cursor: pointer;
+            }
+            button:hover {
+                background-color: #004494;
+            }
+            .message {
+                color: #cc0000;
+                text-align: center;
+            }
+        </style>
+    </head>
+<body>
+    <div class="recovery-container">
+        <h2>Recuperar Contraseña</h2>
+        <input type="text" id="username" placeholder="Nombre de usuario">
+        <input type="text" id="recover_password" placeholder="Palabra secreta">
+        <button onclick="recoverPassword()">Recuperar</button>
+        <button onclick="goBack()">Iniciar sesión</button>
+        <p id="message" class="message"></p>
+    </div>
+
+    <script>
+         function recoverPassword() {
+            var username = document.getElementById('username').value;
+            var recoverPassword = document.getElementById('recover_password').value;
+    
+            fetch('https://fysnmxi2twe3fcsknm7u5u4die0ocdkn.lambda-url.us-east-1.on.aws/', {
+                method: 'POST',
+                body: JSON.stringify({ 
+                    username: username, 
+                    recover_password: recoverPassword 
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.password) {
+                    document.getElementById('message').innerHTML = 'Tu contraseña es: ' + data.password;
+                    localStorage.setItem('failedAttempts', '0'); // Restablece los intentos fallidos tras una recuperación exitosa
+                } else {
+                    document.getElementById('message').innerHTML = 'No se pudo recuperar la contraseña. ';
+                }
+            })
+            .catch(error => {
+                document.getElementById('message').innerHTML = 'Error: ' + error.message;
+            });
+        }
+
+        
+        function goBack() {
+            window.location.href = 'Login.html';
+        }
+    </script>
+</body>
+</html>
