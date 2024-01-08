@@ -61,9 +61,10 @@
             border: none;
             padding: 10px 20px;
             cursor: pointer;
-            margin: 50px auto; /* Center the button */
+            margin: 50px auto;
+            /* Center the button */
             text-align: center;
-            
+
         }
 
         #tweets-container {
@@ -92,6 +93,7 @@
             font-weight: bold;
             margin-bottom: 5px;
         }
+
         .tweet-message {
             background-color: #f9f9f9;
             border: 1px solid #ddd;
@@ -100,25 +102,48 @@
         }
 
         .tweet-box textarea {
-            resize: none; 
+            resize: none;
             padding: 10px;
             border: 1px solid #ddd;
             width: 95%;
             max-width: 600px;
             text-align: center;
-            
+
         }
 
+        header {
+            width: 100%;
+            background-color: #00acee;
+            color: white;
+            padding: 10px;
+            display: flex;
+            align-items: flex-start;
+            /* Alinea los elementos hacia la parte superior */
+        }
     </style>
 </head>
 <script>
 
-document.addEventListener('DOMContentLoaded', function () {
-            loadTweets();
-        });
+    function getAWSKeys() {
+        let asd = $.get(
+            "https://m2kk6smbpi2hkynb6twjlvt5ne0panwo.lambda-url.us-east-1.on.aws/",
+            {},
+            function (data) {
+                let json = data;
+                document.getElementById("Policy").value = json.stringToSign;
+                document.getElementById("X-Amz-Credential").value = json.xAmzCredential;
+                document.getElementById("X-Amz-Date").value = json.amzDate;
+                document.getElementById("X-Amz-Signature").value = json.stringSigned;
+                document.getElementById("X-Amz-Security-Token").value = json.securityToken;
+            }
+        )
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+        loadTweets();
+    });
 
-        function loadTweets() {
-            fetch('https://gbwrep4rwbbanbbz3wdjgrw3vq0ernbq.lambda-url.us-east-1.on.aws/')
+    function loadTweets() {
+        fetch('https://3zldewlwzu6ms6sp25iloifvhq0kkjum.lambda-url.us-east-1.on.aws/')
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok: ' + response.statusText);
@@ -126,6 +151,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 return response.json();
             })
             .then(tweets => {
+
                 const tweetsContainer = document.getElementById('tweets-container');
                 tweetsContainer.innerHTML = '';
                 tweets.forEach(tweet => {
@@ -133,14 +159,40 @@ document.addEventListener('DOMContentLoaded', function () {
                     tweetElement.className = 'tweet';
 
                     const usernameElement = document.createElement('div');
-                    usernameElement.className = 'username';
+                    usernameElement.className = 'tweet-username';
                     usernameElement.textContent = tweet.nombre_usuario;
 
                     const messageElement = document.createElement('div');
+                    messageElement.className = 'tweet-message';
                     messageElement.textContent = tweet.mensaje;
+
+                    const dateElement = document.createElement('div');
+                    dateElement.className = 'tweet-date';
+                    dateElement.textContent = new Date(tweet.fecha_hora).toLocaleString();
 
                     tweetElement.appendChild(usernameElement);
                     tweetElement.appendChild(messageElement);
+                    tweetElement.appendChild(dateElement);
+
+                    if (["mp4"].includes(tweet.tipoDato.toLowerCase())) {
+
+                        const videoElement = document.createElement('video');
+                        videoElement.setAttribute("width", "100%");
+                        videoElement.setAttribute("height", "240");
+                        videoElement.setAttribute("controls", "controls");
+                        const videoElement2 = document.createElement("source");
+                        videoElement2.src = tweet.datoAdjunto;
+                        videoElement2.type = "video/" + tweet.tipoDato;
+                        videoElement.appendChild(videoElement2);
+                        tweetElement.appendChild(videoElement);
+
+                    } else if (["png", "gif", "jpeg", "jpg"].includes(tweet.tipoDato.toLowerCase())) {
+
+                        const photoElement = document.createElement('img');
+                        photoElement.src = tweet.datoAdjunto;
+                        tweetElement.appendChild(photoElement);
+
+                    }
 
                     tweetsContainer.appendChild(tweetElement);
                 });
@@ -148,25 +200,34 @@ document.addEventListener('DOMContentLoaded', function () {
             .catch(error => {
                 console.error('There has been a problem with your fetch operation:', error);
             });
-        }
-
+    }
     function handleEnviar() {
         var text = document.getElementById("frase-tweet").value;
-        var idUsuario = localStorage.getItem('userId'); 
+        var idUsuario = localStorage.getItem('userId');
 
         if (!idUsuario) {
             alert("Usuario no identificado. Por favor, inicie sesión nuevamente.");
             return;
         }
 
+        if (text.lenght === 0) text = ' '
+        let file_name = document.getElementById("file").value.substring(document.getElementById("file").value.lastIndexOf('\\') + 1)
+        let file_type = file_name.split('.').reverse()[0]
+
+        document.getElementById("key").value = idUsuario + '/' + btoa(file_name).substring(0, 8) + btoa(file_name).split('').reverse().join('').substring(0, 8) + '.' + file_type
+
+        // Obtener la fecha y hora actual
+        var fechaHoraActual = new Date().toISOString();
+
         // Envío de datos a la función Lambda
         fetch("https://ckwcw3zzkeomfbk5l5l6f3s43i0mrwee.lambda-url.us-east-1.on.aws/", {
             method: "POST",
             body: JSON.stringify({
                 idUsuario: idUsuario,
-                mensaje: text,  
-                datoAdjunto: null,
-                tipoDato: null
+                mensaje: text,
+                fechaHora: fechaHoraActual,
+                datoAdjunto: document.getElementById('file').value !== '' ? 'https://s3.amazonaws.com/david.sanchez2.2023/' + document.getElementById("key").value : 'None',
+                tipoDato: file_type
             })
         })
             .then(response => response.ok ? response.json() : undefined)
@@ -177,7 +238,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     console.log(idUsuario);
                 } else {
                     console.log(data);
-                    window.location.href = 'https://google.com';
+                    console.log(fechaHoraActual);
+                    window.location.href = 'http://127.0.0.1:5500/Twitter/PaginaPrincipal.html';
                 }
             });
     }
@@ -210,15 +272,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 tweetBox.value = '';
             }
         });
-        
+
     });
     function goToUserProfile() {
-    window.location.href = 'http://127.0.0.1:5500/Pagina_personal.html'; 
-}
+        window.location.href = 'http://127.0.0.1:5500/Pagina_personal.html';
+    }
 </script>
 
-<body>
+<body onload="getAWSKeys()">
     <header>
+        <div>Twuuter</div>
         <div class="user-info">
             <div id="profile-icon" onclick="goToUserProfile()">👤</div>
             <span class="username" id="username-display"></span>
@@ -229,11 +292,29 @@ document.addEventListener('DOMContentLoaded', function () {
         <div class="tweet-box">
             <textarea id="frase-tweet" placeholder="¿Qué está pasando?" maxlength="255"></textarea>
         </div>
-        <button onclick="handleEnviar(); setTimeout(() => window.location.reload(), 1000);">Tweet</button>
-        <div id="tweets-container">
-
+        <div class="upload-box">
+            <form id="formulario_s3" action="https://david.sanchez2.2023.s3.us-east-1.amazonaws.com"
+                onsubmit="handleEnviar()" method="post" enctype="multipart/form-data">
+                <input type="hidden" id="X-Amz-Credential" name="X-Amz-Credential" value="" />
+                <input type="hidden" id="X-Amz-Date" name="X-Amz-Date" value="" />
+                <input type="hidden" id="Policy" name="Policy" value="" />
+                <input type="hidden" id="X-Amz-Signature" name="X-Amz-Signature" value="" />
+                <input type="hidden" id="key" name="key" value="" /><br />
+                <input type="hidden" name="acl" value="public-read" />
+                <input type="hidden" name="success_action_redirect"
+                    value="https://s3.amazonaws.com/david.sanchez2.2023/success.html" />
+                <input type="hidden" name="X-Amz-Algorithm" value="AWS4-HMAC-SHA256" />
+                <input type="hidden" id="X-Amz-Security-Token" name="X-Amz-Security-Token" value="" />
+                <input type="file" name="file" id="file" accept="video/mp4,image/png,image/gif">
+                <button type="submit" id="post_button" class="btn btn-primary">Twottear</button>
+            </form>
         </div>
+        <div id="tweets-container">
+        </div>
+        </div>
+
     </main>
 </body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 
 </html>

@@ -94,6 +94,7 @@
         var biografia = document.getElementById('editar-biografia').value;
         var password = document.getElementById('editar-password').value;
 
+    //actualizar info
     fetch('https://sw3gt54yy5dxc27s5xqztcqake0dpkcz.lambda-url.us-east-1.on.aws/', {
         method: 'POST',
         body: JSON.stringify({
@@ -130,6 +131,7 @@
         // Cargar la información del perfil al cargar la página
         document.addEventListener('DOMContentLoaded', function() {
             var userId = localStorage.getItem('userId');
+            //el otro chucho
             fetch(`https://7f6pfhz2efk6kww2v56u3b7phe0soaaz.lambda-url.us-east-1.on.aws/?userId=${userId}`)
                 .then(response => {
                     if (!response.ok) {
