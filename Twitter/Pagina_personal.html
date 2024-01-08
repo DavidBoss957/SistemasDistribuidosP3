@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil de Usuario</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f4f4f4;
+        }
+        header, main, footer {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        header {
+            background-color: #00acee;
+            padding: 10px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .perfil-info, .tweets-container, #formulario-edicion {
+            padding: 10px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .tweet {
+            border-bottom: 1px solid #ddd;
+            padding: 10px 0;
+        }
+        input, textarea, button {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Perfil de Usuario</h1>
+        <button onclick="logout()">Cerrar sesión</button>
+    </header>
+    <main>
+        <div class="perfil-info" id="perfil-info">
+            <!-- La información del usuario se cargará aquí -->
+        </div>
+        <div class="tweets-container" id="tweets-usuario">
+            <!-- Los tweets se cargarán aquí -->
+        </div>
+        <div id="formulario-edicion" style="display:none;">
+            <h2>Editar Perfil</h2>
+            <form id="form-editar-perfil">
+                <input type="text" id="editar-nombre-usuario" placeholder="Nombre de usuario" required>
+                <input type="email" id="editar-email" placeholder="Email" required>
+                <textarea id="editar-biografia" placeholder="Biografía"></textarea>
+                <input type="password" id="editar-password" placeholder="Contraseña" required>
+                <button type="button" onclick="guardarCambios()">Guardar Cambios</button>
+                <button type="button" onclick="cancelarEdicion()">Atrás</button>
+            </form>
+        </div>
+    </main>
+    <script>
+        // Función para cerrar la sesión y limpiar localStorage
+        function logout() {
+            localStorage.clear();
+            window.location.href = 'login.html';
+        }
+    
+        // Función para cancelar la edición y volver al perfil
+        function cancelarEdicion() {
+            document.getElementById('perfil-info').style.display = 'block';
+            document.getElementById('formulario-edicion').style.display = 'none';
+        }
+    
+        // Función para mostrar el formulario de edición
+        function mostrarFormularioEdicion() {
+            document.getElementById('perfil-info').style.display = 'none';
+            document.getElementById('formulario-edicion').style.display = 'block';
+        }
+    
+        function guardarCambios() {
+        var userId = localStorage.getItem('userId');
+        var nombreUsuario = document.getElementById('editar-nombre-usuario').value;
+        var email = document.getElementById('editar-email').value;
+        var biografia = document.getElementById('editar-biografia').value;
+        var password = document.getElementById('editar-password').value;
+
+    fetch('https://sw3gt54yy5dxc27s5xqztcqake0dpkcz.lambda-url.us-east-1.on.aws/', {
+        method: 'POST',
+        body: JSON.stringify({
+            userId: userId,
+            nombre_usuario: nombreUsuario,
+            email: email,
+            biografia: biografia,
+            password: password
+        }),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Problema al actualizar el perfil');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Perfil actualizado', data);
+        // Actualizar la página o mostrar mensaje de éxito
+        alert("Perfil actualizado exitosamente.");
+        location.reload(); // O alguna lógica para actualizar la página
+    })
+    .catch(error => {
+        console.error('Error al actualizar el perfil:', error);
+        alert("Error al actualizar el perfil: " + error.message);
+    });
+}
+
+
+    
+        // Cargar la información del perfil al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            var userId = localStorage.getItem('userId');
+            fetch(`https://7f6pfhz2efk6kww2v56u3b7phe0soaaz.lambda-url.us-east-1.on.aws/?userId=${userId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Problema al obtener la respuesta de la red');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const perfilInfoDiv = document.getElementById('perfil-info');
+                    const tweetsUsuarioDiv = document.getElementById('tweets-usuario');
+    
+                    perfilInfoDiv.innerHTML = `
+                        <h2>${data.user_info.nombre_usuario}</h2>
+                        <p><strong>Email:</strong> ${data.user_info.correo_electronico}</p>
+                        <p><strong>Biografía:</strong> ${data.user_info.biografia}</p>
+                        <button id="editar-perfil" onclick="mostrarFormularioEdicion()">Editar Perfil</button>
+                    `;
+    
+                    data.tweets.forEach(tweet => {
+                        tweetsUsuarioDiv.innerHTML += `<div class="tweet">${tweet.mensaje}</div>`;
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert(`Error al cargar el perfil: ${error.message}`);
+                });
+        });
+    </script>
+    
+</body>
+</html>
