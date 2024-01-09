@@ -151,16 +151,17 @@
                 return response.json();
             })
             .then(tweets => {
-
                 const tweetsContainer = document.getElementById('tweets-container');
                 tweetsContainer.innerHTML = '';
                 tweets.forEach(tweet => {
                     const tweetElement = document.createElement('div');
                     tweetElement.className = 'tweet';
+                    tweetElement.onclick = () => {
+                        window.location.href = `./tweet.html?id=${tweet.idMensaje}`
+                    }
 
                     const usernameElement = document.createElement('div');
                     usernameElement.className = 'tweet-username';
-                    usernameElement.textContent = tweet.nombre_usuario;
 
                     const messageElement = document.createElement('div');
                     messageElement.className = 'tweet-message';
@@ -201,6 +202,7 @@
                 console.error('There has been a problem with your fetch operation:', error);
             });
     }
+    
     function handleEnviar() {
         var text = document.getElementById("frase-tweet").value;
         var idUsuario = localStorage.getItem('userId');
@@ -227,7 +229,8 @@
                 mensaje: text,
                 fechaHora: fechaHoraActual,
                 datoAdjunto: document.getElementById('file').value !== '' ? 'https://s3.amazonaws.com/david.sanchez2.2023/' + document.getElementById("key").value : 'None',
-                tipoDato: file_type
+                tipoDato: file_type,
+                padre: 0
             })
         })
             .then(response => response.ok ? response.json() : undefined)
@@ -239,13 +242,13 @@
                 } else {
                     console.log(data);
                     console.log(fechaHoraActual);
-                    window.location.href = 'http://127.0.0.1:5500/Twitter/PaginaPrincipal.html';
+                    window.location.href = './Twitter/PaginaPrincipal.html';
                 }
             });
     }
     function logout() {
         localStorage.clear();
-        window.location.href = 'http://127.0.0.1:5500/Login.html';
+        window.location.href = './Login.html';
     }
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -255,7 +258,7 @@
         if (storedUsername) {
             usernameDisplay.textContent = storedUsername;
         } else {
-            window.location.href = 'http://127.0.0.1:5500/Login.html';
+            window.location.href = './Login.html';
         }
 
 
@@ -275,7 +278,7 @@
 
     });
     function goToUserProfile() {
-        window.location.href = 'http://127.0.0.1:5500/Pagina_personal.html';
+        window.location.href = './Pagina_personal.html';
     }
 </script>
 
