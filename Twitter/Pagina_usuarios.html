@@ -114,7 +114,40 @@
         margin-left: auto; 
         margin-right: 20px;
     }
-        
+    .user-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .user-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        #btn-follow {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-bottom: 10px;
+        }
+
+        #btn-follow.unfollow {
+            background-color: #f44336;
+        }
+
+        #follower-count {
+            margin-top: 10px;
+            text-align: center;
+            
+        }
+
     </style>
 </head>
 <body>
@@ -125,9 +158,17 @@
         </div>
     </header>
     <main>
-        <div class="perfil-info" id="perfil-info">           
+        <div id="profile-header">
+            <div class="perfil-info" id="perfil-info">           
+                <!-- La información del perfil se cargará aquí -->
+            </div>
+            <div>
+                <div id="follower-count">Seguidores: <span id="follower-number">0</span></div>
+                <button id="btn-follow" onclick="toggleFollow()">Seguir</button>
+            </div>
         </div>
-        <div class="tweets-container" id="tweets-usuario">          
+        <div class="tweets-container" id="tweets-usuario">
+            <!-- Los tweets del usuario se cargarán aquí -->
         </div>
     </main>
 
@@ -137,6 +178,64 @@
             window.location.href = 'login.html';
         }
 
+        var following = false; // This value should be initialized based on whether the user is already followed or not
+
+function logout() {
+    localStorage.clear();
+    window.location.href = 'login.html';
+}
+
+function toggleFollow() {
+    var userId = getUrlParameter('userId');
+    if (!userId) {
+        alert('User ID not provided.');
+        return;
+    }
+
+    var action = following ? 'unfollow' : 'follow';
+    fetch('https://y2g7bvl6yq5xuruotdfrsibzfm0ddvdx.lambda-url.us-east-1.on.aws/', {
+        method: 'POST',
+        body: JSON.stringify({ userId: userId, action: action }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        following = !following;
+        // Guarda el nuevo estado en localStorage
+        localStorage.setItem('following_' + userId, following);
+        document.getElementById('btn-follow').textContent = following ? 'Dejar de seguir' : 'Seguir';
+        document.getElementById('btn-follow').classList.toggle('unfollow', following);
+        updateFollowerCount(following ? 1 : -1);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error: ' + error.message);
+    });
+}
+
+function updateFollowerCount(change) {
+    var countElement = document.getElementById('follower-number');
+    var currentCount = parseInt(countElement.textContent);
+    countElement.textContent = currentCount + change;
+}
+
+function updateFollowerCount(change) {
+    var countElement = document.getElementById('follower-number');
+    var currentCount = parseInt(countElement.textContent);
+    countElement.textContent = currentCount + change;
+}
+
+function updateButtonState(userId) {
+    if (localStorage.getItem('following_' + userId)) {
+        following = localStorage.getItem('following_' + userId) === 'true';
+        document.getElementById('btn-follow').textContent = following ? 'Dejar de seguir' : 'Seguir';
+        document.getElementById('btn-follow').classList.toggle('unfollow', following);
+    }
+}
+
+        
         function getUrlParameter(name) {
             name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
             var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
@@ -145,52 +244,57 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            var userId = getUrlParameter('userId');
-            console.log("User ID from URL:", userId);
+    var userId = getUrlParameter('userId');
+    if (!userId) {
+        alert('No se proporcionó un ID de usuario.');
+        window.location.href = 'login.html';
+        return;
+    }
 
-            if (userId) {
-                fetch('https://6yilzxx6nzv4qqdvy457p3taga0jeyzz.lambda-url.us-east-1.on.aws/', {
-                    method: 'POST',
-                    body: JSON.stringify({ 
-                        action: 'getUserInfo',
-                        userId: userId,
-                    })
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Problema al obtener la respuesta de la red: ' + response.status);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (!data.user_info) {
-                        throw new Error('Datos de usuario no encontrados');
-                    }
+    // Cargar información del perfil
+    fetch('https://6yilzxx6nzv4qqdvy457p3taga0jeyzz.lambda-url.us-east-1.on.aws/', {
+        method: 'POST',
+        body: JSON.stringify({ 
+            action: 'getUserInfo',
+            userId: userId,
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Problema al obtener la respuesta de la red: ' + response.status);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (!data.user_info) {
+            throw new Error('Datos de usuario no encontrados');
+        }
 
-                    // Mostrar información del perfil
-                    const perfilInfoDiv = document.getElementById('perfil-info');
-                    perfilInfoDiv.innerHTML = `
-                        <h2>${data.user_info.nombre_usuario}</h2>
-                        <p><strong>Email:</strong> ${data.user_info.correo_electronico}</p>
-                        <p><strong>Biografía:</strong> ${data.user_info.biografia}</p>
-                    `;
+        // Mostrar información del perfil
+        const perfilInfoDiv = document.getElementById('perfil-info');
+        perfilInfoDiv.innerHTML = `
+            <h2>${data.user_info.nombre_usuario}</h2>
+            <p><strong>Email:</strong> ${data.user_info.correo_electronico}</p>
+            <p><strong>Biografía:</strong> ${data.user_info.biografia}</p>
+        `;
 
-                    // Mostrar tweets del usuario
-                    const tweetsUsuarioDiv = document.getElementById('tweets-usuario');
-                    data.tweets.forEach(tweet => {
-                        tweetsUsuarioDiv.innerHTML += `<div class="tweet">${tweet.mensaje}</div>`;
-                    });
-                })
-                .catch(error => {
-                    console.error('Fetch error:', error);
-                    alert(`Error al cargar el perfil: ${error.message}`);
-                });
-            } else {
-                alert('No se proporcionó un ID de usuario.');
-                window.location.href = 'login.html';
-            }
+        // Mostrar tweets del usuario
+        const tweetsUsuarioDiv = document.getElementById('tweets-usuario');
+        data.tweets.forEach(tweet => {
+            tweetsUsuarioDiv.innerHTML += `<div class="tweet">${tweet.mensaje}</div>`;
         });
+
+        // Actualizar el contador de seguidores
+        var countElement = document.getElementById('follower-number');
+        countElement.textContent = data.user_info.seguidores || 0;
+    })
+    .catch(error => {
+        console.error('Fetch error:', error);
+        alert(`Error al cargar el perfil: ${error.message}`);
+    });
+    updateButtonState(userId);
+});
+
     </script>
 </body>
-</html>
 </html>

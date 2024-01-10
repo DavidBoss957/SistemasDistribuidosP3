@@ -189,6 +189,8 @@
                     } else if (["png", "gif", "jpeg", "jpg"].includes(tweet.tipoDato.toLowerCase())) {
 
                         const photoElement = document.createElement('img');
+                        photoElement.setAttribute("width", "100%");
+                        photoElement.setAttribute("height", "100%");
                         photoElement.src = tweet.datoAdjunto;
                         tweetElement.appendChild(photoElement);
 

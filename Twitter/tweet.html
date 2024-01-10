@@ -2,13 +2,114 @@
 <html lang="en">
 
 <head>
-    <!-- Tus etiquetas head aquí -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalles del Tweet</title>
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f8fa;
+            /* Color de fondo similar a Twitter */
+        }
+
+        header {
+            background-color: #1da1f2;
+            /* Azul de Twitter */
+            color: white;
+            padding: 15px 20px;
+            text-align: left;
+        }
+
+        main {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #tweet-detail-container {
+            text-align: left;
+        }
+
+        #tweet-detail-container h1 {
+            color: #1da1f2;
+            /* Azul de Twitter */
+            margin-bottom: 20px;
+        }
+
+        #tweet-detail-container img,
+        #tweet-detail-container video {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tweet-date {
+            color: #657786;
+            /* Gris oscuro para el texto */
+            font-size: 0.9em;
+        }
+
+        .mensaje-recuadro,
+        .respuesta-recuadro {
+            border: 1px solid #1da1f2;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            word-wrap: break-word;
+        }
+
+        #respuesta-container {
+            display: none;
+            margin-bottom: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+        }
+
+        button {
+            background-color: #1da1f2;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        button:hover {
+            background-color: #1991db;
+        }
+    </style>
 </head>
 
 <body>
-    <div id="tweet-detail-container">
-        <!-- Los detalles del tweet seleccionado se mostrarán aquí -->
-    </div>
+    <header>
+        <!-- Tu cabecera aquí -->
+    </header>
+    <main>
+        <div id="tweet-detail-container">
+            <!-- Los detalles del tweet seleccionado se mostrarán aquí -->
+        </div>
+        <div id="respuesta-container">
+            <textarea id="respuesta-texto" placeholder="Escribe tu respuesta aquí"></textarea>
+            <button onclick="enviarRespuesta()">Enviar Respuesta</button>
+        </div>
+        <div id="respuestas">
+            <!-- Las respuestas se mostrarán aquí -->
+        </div>
+    </main>
 
     <script>
         function cargarDetallesTweet() {
@@ -19,8 +120,9 @@
                 fetch(`https://3zldewlwzu6ms6sp25iloifvhq0kkjum.lambda-url.us-east-1.on.aws/tweets?idMensaje=${tweetId}`)
                     .then(response => response.json())
                     .then(data => {
-                        const tweet = data[0];  // Asumiendo que la API devuelve un array
+                        const tweet = data[0];
                         mostrarDetallesTweet(tweet);
+                        cargarRespuestas(tweet.idMensaje);
                         console.log(tweet);
                     })
                     .catch(error => {
@@ -30,7 +132,6 @@
             }
         }
 
-
         function mostrarDetallesTweet(tweet) {
             const container = document.getElementById('tweet-detail-container');
 
@@ -39,14 +140,110 @@
                 return;
             }
 
-            const mensaje = tweet.mensaje || 'Mensaje no disponible';
+            // Asignar "none" si tipoDato es null o undefined
+            tweet.tipoDato = tweet.tipoDato || "none";
+
+            let contenido;
+            if (tweet.tipoDato !== "none" && tweet.datoAdjunto) {
+                if (["mp4"].includes(tweet.tipoDato.toLowerCase())) {
+                    contenido = `<video width="100%" controls>
+                             <source src="${tweet.datoAdjunto}" type="video/${tweet.tipoDato}">
+                             Video no disponible.
+                         </video>`;
+                } else if (["png", "gif", "jpeg", "jpg"].includes(tweet.tipoDato.toLowerCase())) {
+                    contenido = `<img src="${tweet.datoAdjunto}" alt="Imagen del Tweet" style="max-width: 100%; height: auto;">`;
+                } else {
+                    contenido = `<div class="mensaje-recuadro">${tweet.mensaje || 'Mensaje no disponible'}</div>`;
+                }
+            } else {
+                contenido = `<div class="mensaje-recuadro">${tweet.mensaje || 'Mensaje no disponible'}</div>`;
+            }
+
             const fecha = new Date(tweet.fecha_hora);
             const fechaFormateada = isNaN(fecha) ? 'Fecha no disponible' : fecha.toLocaleString();
 
             container.innerHTML = `
-                <h1>Usuario: ${tweet.nombre_usuario}</h1>
-                <p>Mensaje: ${mensaje}</p>
-                <p>Fecha: ${fechaFormateada}</p>`;
+        <h1>${tweet.nombre_usuario}</h1>
+        ${contenido}
+        <button onclick="mostrarAreaRespuesta('${tweet.idMensaje}')">Responder</button>
+        <p class="tweet-date">Fecha: ${fechaFormateada}</p>`;
+        }
+
+        function mostrarAreaRespuesta(idMensaje) {
+            document.getElementById('respuesta-container').style.display = 'block';
+            window.idMensajePadre = idMensaje;
+        }
+
+        function enviarRespuesta() {
+            const textoRespuesta = document.getElementById('respuesta-texto').value;
+            if (!textoRespuesta) {
+                alert("Por favor, escribe una respuesta.");
+                return;
+            }
+
+            // Asegúrate de que idUsuario sea un valor adecuado, por ejemplo, un número o una cadena válida
+            const idUsuario = '1'; // Reemplaza con la lógica para obtener el ID de usuario real
+
+            const respuesta = {
+                idUsuario: idUsuario,
+                mensaje: textoRespuesta,
+                fechaHora: new Date().toISOString(),
+                idMensajePadre: window.idMensajePadre
+            };
+
+            fetch('https://su3nntlosmmpn2jljpshzx6xcu0qyvhc.lambda-url.us-east-1.on.aws/', {
+                method: 'POST',
+                body: JSON.stringify(respuesta),
+
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    mostrarRespuestaEnPantalla(textoRespuesta);
+                    document.getElementById('respuesta-texto').value = '';
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function cargarRespuestas(idMensajePadre) {
+            // Cambia la URL a la de tu función Lambda que devuelve las respuestas
+            fetch(`https://su3nntlosmmpn2jljpshzx6xcu0qyvhc.lambda-url.us-east-1.on.aws/responses?idMensajePadre=${idMensajePadre}`)
+                .then(response => {
+                    if (!response.ok) {
+                        // Si la respuesta no es ok, imprimir el error y lanzar una excepción
+                        console.error('Respuesta HTTP no fue exitosa:', response);
+                        return response.text().then(text => { throw new Error(text) });
+                    }
+                    return response.json();
+                })
+                .then(respuestas => {
+                    if (!Array.isArray(respuestas)) {
+                        // Si respuestas no es un array, imprimir el error y lanzar una excepción
+                        console.error('La respuesta no es un array:', respuestas);
+                        throw new Error('La respuesta no es un array');
+                    }
+                    // Continuar con el procesamiento de las respuestas si es un array
+                    const respuestasDiv = document.getElementById('respuestas');
+                    respuestasDiv.innerHTML = '';
+                    respuestas.forEach(respuesta => {
+                        const respuestaDiv = document.createElement('div');
+                        respuestaDiv.className = 'respuesta-recuadro';
+                        respuestaDiv.textContent = respuesta.mensaje;
+                        respuestasDiv.appendChild(respuestaDiv);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error al cargar respuestas:', error);
+                    // Aquí podrías actualizar la UI para mostrar que hubo un error
+                });
+        }
+
+        function mostrarRespuestaEnPantalla(respuesta) {
+            const respuestasDiv = document.getElementById('respuestas');
+            const respuestaDiv = document.createElement('div');
+            respuestaDiv.className = 'respuesta-recuadro';
+            respuestaDiv.textContent = respuesta;
+            respuestasDiv.appendChild(respuestaDiv);
         }
 
         cargarDetallesTweet();
