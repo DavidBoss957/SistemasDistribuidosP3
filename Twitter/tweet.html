@@ -1,16 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
-<link rel="icon" href="data:;base64,iVBORw0KGgo=">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mini Twitter</title>
-    <style>
-    </style>
+    <!-- Tus etiquetas head aquí -->
 </head>
-<body>
 
+<body>
+    <div id="tweet-detail-container">
+        <!-- Los detalles del tweet seleccionado se mostrarán aquí -->
+    </div>
+
+    <script>
+        function cargarDetallesTweet() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tweetId = urlParams.get('id');
+
+            if (tweetId) {
+                fetch(`https://3zldewlwzu6ms6sp25iloifvhq0kkjum.lambda-url.us-east-1.on.aws/tweets?idMensaje=${tweetId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const tweet = data[0];  // Asumiendo que la API devuelve un array
+                        mostrarDetallesTweet(tweet);
+                        console.log(tweet);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        document.getElementById('tweet-detail-container').innerText = 'Error al cargar el tweet.';
+                    });
+            }
+        }
+
+
+        function mostrarDetallesTweet(tweet) {
+            const container = document.getElementById('tweet-detail-container');
+
+            if (!tweet) {
+                container.innerHTML = '<p>Tweet no encontrado.</p>';
+                return;
+            }
+
+            const mensaje = tweet.mensaje || 'Mensaje no disponible';
+            const fecha = new Date(tweet.fecha_hora);
+            const fechaFormateada = isNaN(fecha) ? 'Fecha no disponible' : fecha.toLocaleString();
+
+            container.innerHTML = `
+                <h1>Usuario: ${tweet.nombre_usuario}</h1>
+                <p>Mensaje: ${mensaje}</p>
+                <p>Fecha: ${fechaFormateada}</p>`;
+        }
+
+        cargarDetallesTweet();
+    </script>
 </body>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
 </html>

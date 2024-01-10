@@ -162,6 +162,7 @@
 
                     const usernameElement = document.createElement('div');
                     usernameElement.className = 'tweet-username';
+                    usernameElement.textContent = tweet.nombre_usuario;
 
                     const messageElement = document.createElement('div');
                     messageElement.className = 'tweet-message';
@@ -172,9 +173,7 @@
                     dateElement.textContent = new Date(tweet.fecha_hora).toLocaleString();
 
                     tweetElement.appendChild(usernameElement);
-                    tweetElement.appendChild(messageElement);
-                    tweetElement.appendChild(dateElement);
-
+                    
                     if (["mp4"].includes(tweet.tipoDato.toLowerCase())) {
 
                         const videoElement = document.createElement('video');
@@ -195,6 +194,9 @@
 
                     }
 
+                    
+                    tweetElement.appendChild(messageElement);
+                    tweetElement.appendChild(dateElement);
                     tweetsContainer.appendChild(tweetElement);
                 });
             })
@@ -202,7 +204,7 @@
                 console.error('There has been a problem with your fetch operation:', error);
             });
     }
-    
+
     function handleEnviar() {
         var text = document.getElementById("frase-tweet").value;
         var idUsuario = localStorage.getItem('userId');
