@@ -120,6 +120,20 @@
             align-items: flex-start;
             /* Alinea los elementos hacia la parte superior */
         }
+
+        .tweet-button {
+            margin: 5px 5px 5px 0;
+            padding: 3px 6px;
+            font-size: 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #007bff;
+            /* Color azul */
+            color: white;
+            display: inline;
+            /* Muestra los botones en línea */
+        }
     </style>
 </head>
 <script>
@@ -156,9 +170,7 @@
                 tweets.forEach(tweet => {
                     const tweetElement = document.createElement('div');
                     tweetElement.className = 'tweet';
-                    tweetElement.onclick = () => {
-                        window.location.href = `./tweet.html?id=${tweet.idMensaje}`
-                    }
+
 
                     const usernameElement = document.createElement('div');
                     usernameElement.className = 'tweet-username';
@@ -173,8 +185,8 @@
                     dateElement.textContent = new Date(tweet.fecha_hora).toLocaleString();
 
                     tweetElement.appendChild(usernameElement);
-                    
-                    if (["mp4"].includes(tweet.tipoDato.toLowerCase())) {
+
+                     if (["mp4"].includes(tweet.tipoDato.toLowerCase())) {
 
                         const videoElement = document.createElement('video');
                         videoElement.setAttribute("width", "100%");
@@ -189,18 +201,86 @@
                     } else if (["png", "gif", "jpeg", "jpg"].includes(tweet.tipoDato.toLowerCase())) {
 
                         const photoElement = document.createElement('img');
-                        photoElement.setAttribute("width", "100%");
-                        photoElement.setAttribute("height", "100%");
                         photoElement.src = tweet.datoAdjunto;
                         tweetElement.appendChild(photoElement);
 
                     }
 
-                    
+                    const likeButton = document.createElement('button');
+                    likeButton.className = 'tweet-button';
+                    likeButton.textContent = '👍';
+                    likeButton.onclick = () => handleLike(tweet.idMensaje);
+
+                    const dislikeButton = document.createElement('button');
+                    dislikeButton.className = 'tweet-button';
+                    dislikeButton.textContent = '👎';
+                    dislikeButton.onclick = () => handleDislike(tweet.idMensaje);
+
+                    const replyButton = document.createElement('button');
+                    replyButton.className = 'tweet-button';
+                    replyButton.textContent = 'Responder';
+                    replyButton.onclick = () => window.location.href = `./tweet.html?id=${tweet.idMensaje}`;
+
                     tweetElement.appendChild(messageElement);
+
                     tweetElement.appendChild(dateElement);
+                    tweetElement.appendChild(likeButton);
+                    tweetElement.appendChild(dislikeButton);
+                    tweetElement.appendChild(replyButton);
                     tweetsContainer.appendChild(tweetElement);
+                    
                 });
+
+                function handleLike(tweetId) {
+                    const userId = localStorage.getItem('userId');
+                    if (!userId) {
+                        alert("Usuario no identificado. Por favor, inicie sesión.");
+                        return;
+                    }
+
+                    fetch("https://ii2tweulopojrtl7q4exp4uir40hlfal.lambda-url.us-east-1.on.aws/", {
+                        method: "POST",
+                        body: JSON.stringify({
+                            tweetId: tweetId,
+                            userId: userId,
+                            action: 'like'
+                        })
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log("Respuesta del servidor:", data);
+                            // Aquí puedes actualizar la interfaz de usuario según la respuesta
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
+                }
+
+                function handleDislike(tweetId) {
+                    const userId = localStorage.getItem('userId');
+                    if (!userId) {
+                        alert("Usuario no identificado. Por favor, inicie sesión.");
+                        return;
+                    }
+
+                    fetch("https://ii2tweulopojrtl7q4exp4uir40hlfal.lambda-url.us-east-1.on.aws/", {
+                        method: "POST",
+                        body: JSON.stringify({
+                            tweetId: tweetId,
+                            userId: userId,
+                            action: 'dislike'
+                        })
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log("Respuesta del servidor:", data);
+                            // Aquí puedes actualizar la interfaz de usuario según la respuesta
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
+                }
+
             })
             .catch(error => {
                 console.error('There has been a problem with your fetch operation:', error);
@@ -234,7 +314,7 @@
                 fechaHora: fechaHoraActual,
                 datoAdjunto: document.getElementById('file').value !== '' ? 'https://s3.amazonaws.com/david.sanchez2.2023/' + document.getElementById("key").value : 'None',
                 tipoDato: file_type,
-                padre: 0
+                padre: -1
             })
         })
             .then(response => response.ok ? response.json() : undefined)
@@ -246,7 +326,6 @@
                 } else {
                     console.log(data);
                     console.log(fechaHoraActual);
-                    window.location.href = './Twitter/PaginaPrincipal.html';
                 }
             });
     }
@@ -309,11 +388,11 @@
                 <input type="hidden" id="key" name="key" value="" /><br />
                 <input type="hidden" name="acl" value="public-read" />
                 <input type="hidden" name="success_action_redirect"
-                    value="https://s3.amazonaws.com/david.sanchez2.2023/success.html" />
+                    value="https://s3.amazonaws.com/david.sanchez2.2023/PaginaPrincipal.html" />
                 <input type="hidden" name="X-Amz-Algorithm" value="AWS4-HMAC-SHA256" />
                 <input type="hidden" id="X-Amz-Security-Token" name="X-Amz-Security-Token" value="" />
                 <input type="file" name="file" id="file" accept="video/mp4,image/png,image/gif">
-                <button type="submit" id="post_button" class="btn btn-primary">Twottear</button>
+                <button type="submit" id="post_button" class="btn btn-primary">Twuttear</button>
             </form>
         </div>
         <div id="tweets-container">
