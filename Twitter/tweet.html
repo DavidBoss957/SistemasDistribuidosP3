@@ -16,12 +16,15 @@
         }
 
         header {
-            background-color: #1da1f2;
-            /* Azul de Twitter */
+            width: 100%;
+            background-color: #00acee;
             color: white;
-            padding: 15px 20px;
-            text-align: left;
+            padding: 10px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
         }
+
 
         main {
             max-width: 600px;
@@ -91,11 +94,36 @@
         button:hover {
             background-color: #1991db;
         }
+
+        #profile-icon {
+            font-size: 35px;
+            margin-right: 30px;
+        }
+
+        #logout-button {
+            border: none;
+            background-color: transparent;
+            color: white;
+            cursor: pointer;
+            margin-right: 35px;
+            font-size: 20px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <script>
 
-    function onload(){
+    document.addEventListener('DOMContentLoaded', function () {
+        const usernameDisplay = document.getElementById('username-display');
+        const storedUsername = localStorage.getItem('username');
+
+        if (storedUsername) {
+            usernameDisplay.textContent = storedUsername;
+        } else {
+            window.location.href = './Login.html';
+        }
+    });
+    function onload() {
 
         const urlParams = new URLSearchParams(window.location.search);
         const tweetId = urlParams.get('id');
@@ -103,7 +131,7 @@
         cargarDetallesTweet(tweetId);
 
         cargarRespuestas(tweetId);
-        
+
     }
 
     function cargarDetallesTweet(tweetId) {
@@ -234,10 +262,20 @@
         respuestasDiv.appendChild(respuestaDiv);
     }
 
+    function goToUserProfile() {
+        window.location.href = './Pagina_personal.html';
+    }
 </script>
+
 <body onload="onload()">
     <header>
-        <!-- Tu cabecera aquí -->
+        <header>
+            <div class="user-info">
+                <div id="profile-icon" onclick="goToUserProfile()">👤</div>
+                <span class="username" id="username-display"></span>
+            </div>
+            <button id="logout-button" onclick="logout()">Log out</button>
+        </header>
     </header>
     <main>
         <div id="tweet-detail-container">
@@ -252,7 +290,7 @@
         </div>
     </main>
 
-    
+
 </body>
 
 </html>
