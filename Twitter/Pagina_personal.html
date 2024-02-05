@@ -291,6 +291,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
             data.tweets.forEach(tweet => {
                 tweetsUsuarioDiv.innerHTML += `<div class="tweet">${tweet.mensaje}</div>`;
+
             });
         })
         .catch(error => {

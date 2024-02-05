@@ -219,7 +219,7 @@
                     const replyButton = document.createElement('button');
                     replyButton.className = 'tweet-button';
                     replyButton.textContent = 'Responder';
-                    replyButton.onclick = () => window.location.href = `./tweet.html?id=${tweet.idMensaje}`;
+                    replyButton.onclick = () => window.location.href = `https://s3.amazonaws.com/david.sanchez2.2023/tweet.html?id=${tweet.idMensaje}`;
 
                     tweetElement.appendChild(messageElement);
 
@@ -331,7 +331,7 @@
     }
     function logout() {
         localStorage.clear();
-        window.location.href = './Login.html';
+        window.location.href = 'https://s3.amazonaws.com/david.sanchez2.2023/Login.html';
     }
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -341,7 +341,7 @@
         if (storedUsername) {
             usernameDisplay.textContent = storedUsername;
         } else {
-            window.location.href = './Login.html';
+           // window.location.href = './Login.html';
         }
 
 
@@ -361,7 +361,7 @@
 
     });
     function goToUserProfile() {
-        window.location.href = './Pagina_personal.html';
+        window.location.href = 'https://s3.amazonaws.com/david.sanchez2.2023/Pagina_personal.html';
     }
 </script>
 
@@ -387,7 +387,7 @@
                 <input type="hidden" id="key" name="key" value="" /><br />
                 <input type="hidden" name="acl" value="public-read" />
                 <input type="hidden" name="success_action_redirect"
-                    value="https://s3.amazonaws.com/david.sanchez2.2023/PaginaPrincipal.html" />
+                    value="https://david.sanchez2.2023.s3.us-east-1.amazonaws.com/PaginaPrincipal.html" />
                 <input type="hidden" name="X-Amz-Algorithm" value="AWS4-HMAC-SHA256" />
                 <input type="hidden" id="X-Amz-Security-Token" name="X-Amz-Security-Token" value="" />
                 <input type="file" name="file" id="file" accept="video/mp4,image/png,image/gif">
